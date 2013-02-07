@@ -35,7 +35,8 @@ def datadump(outdir, symbols, frequency):
 		t = datetime.now()
 		hr = t.hour
 		wkday = t.isoweekday #1 for mon, 7 for sun
-		if (hr>=5 and hr<=13 and wkday<=5 and wkday>=1):
+		# if (hr>=5 and hr<=13 and wkday<=5 and wkday>=1):
+		if (True):
 			symtable = parseSymbols(symbols)
 			for sym in symtable:
 				print "writing to:\t" + outdir+"/"+sym+".dump"

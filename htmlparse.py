@@ -75,6 +75,9 @@ def parseSymbols(symbols):
 					datastr += ''.join(datum.contents[0]).encode('utf-8')
 			# print namestr + "   " + datastr
 			attrDict[namestr] = datastr
+		currentPrice = soup.find(lambda tag: tag.name=='span' and tag.has_key('class') and ("time_rtq_ticker" in tag['class']))
+		currentPrice = currentPrice.span.contents[0].encode('utf-8')
+		attrDict["Curr Price:"] = currentPrice
 		symbolDict[symbol] = attrDict
 	# print symbolDict
 	return symbolDict
