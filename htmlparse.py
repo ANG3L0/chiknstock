@@ -26,7 +26,7 @@ def parseSymbols(symbols):
 		soup = BeautifulSoup(url)
 
 		#parse the first table
-		print symbol
+		print "getting info on " + symbol + "..."
 		table1 = None
 		while (table1==None):
 			table1 = soup.find(lambda tag: tag.name=='table' and tag.has_key('id') and tag['id']=="table1")
@@ -34,6 +34,7 @@ def parseSymbols(symbols):
 				url = urllib2.urlopen("http://finance.yahoo.com/q?s="+symbol)
 				soup = BeautifulSoup(url)
 				print "retrying..."
+				print "getting info on " + symbol + "..."
 				time.sleep(1) #retry query after one second.
 
 		names = table1.findAll(lambda tag: tag.name=='th' and tag.has_key('scope') and tag['scope']=="row")
@@ -54,6 +55,7 @@ def parseSymbols(symbols):
 				url = urllib2.urlopen("http://finance.yahoo.com/q?s="+symbol)
 				soup = BeautifulSoup(url)
 				print "retrying..."
+				print "getting info on " + symbol + "..."
 				time.sleep(1)
 
 		names = table2.findAll(lambda tag: tag.name=='th' and tag.has_key('scope') and tag['scope']=="row")
