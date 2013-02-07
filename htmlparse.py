@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import urllib2
+import time
 
 '''
 This module parses symbols for yahoo stocks.
@@ -25,9 +26,16 @@ def parseSymbols(symbols):
 		soup = BeautifulSoup(url)
 
 		#parse the first table
+		print symbol
 		table1 = None
 		while (table1==None):
 			table1 = soup.find(lambda tag: tag.name=='table' and tag.has_key('id') and tag['id']=="table1")
+			if (table1==None):
+				url = urllib2.urlopen("http://finance.yahoo.com/q?s="+symbol)
+				soup = BeautifulSoup(url)
+				print "retrying..."
+				time.sleep(1) #retry query after one second.
+
 		names = table1.findAll(lambda tag: tag.name=='th' and tag.has_key('scope') and tag['scope']=="row")
 		data = table1.findAll(lambda tag: tag.name=='td' and tag.has_key('class'))
 		for i in range(len(names)):
@@ -42,6 +50,12 @@ def parseSymbols(symbols):
 		table2 = None
 		while(table2==None):
 			table2 = soup.find(lambda tag: tag.name=='table' and tag.has_key('id') and tag['id']=="table2")
+			if (table2==None):
+				url = urllib2.urlopen("http://finance.yahoo.com/q?s="+symbol)
+				soup = BeautifulSoup(url)
+				print "retrying..."
+				time.sleep(1)
+
 		names = table2.findAll(lambda tag: tag.name=='th' and tag.has_key('scope') and tag['scope']=="row")
 		data = table2.findAll(lambda tag: tag.name=='td' and tag.has_key('class'))
 		for i in range(len(names)):
