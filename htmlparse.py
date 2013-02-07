@@ -16,13 +16,24 @@ These are mostly private and useless to users:
 	printLoser() prints the loser page and returns a bunch of info on it 
 	parseSymbols(symbol list) will return a bunch of data from yahoo stocks given a symbol list.
 '''
+#if yahoo! gives me some bullshit internal error 500 then I just
+#retry the page after 1 second and never give up. EVER.
+def tryURL(page):
+	while(True):
+		try:
+			url = urllib2.urlopen(page)
+			break
+		except urllib2.HTTPError, error:
+			time.sleep(1)
+	return url
+
 def parseSymbols(symbols):
 	#symbolDict stores symbol -> attributes
 	symbolDict = {}
 	for symbol in symbols:
 		#attrDict stores attribute -> value
 		attrDict = {}
-		url = urllib2.urlopen("http://finance.yahoo.com/q?s="+symbol)
+		url = tryURL("http://finance.yahoo.com/q?s="+symbol)
 		soup = BeautifulSoup(url)
 
 		#parse the first table
@@ -31,7 +42,7 @@ def parseSymbols(symbols):
 		while (table1==None):
 			table1 = soup.find(lambda tag: tag.name=='table' and tag.has_key('id') and tag['id']=="table1")
 			if (table1==None):
-				url = urllib2.urlopen("http://finance.yahoo.com/q?s="+symbol)
+				url = tryURL("http://finance.yahoo.com/q?s="+symbol)
 				soup = BeautifulSoup(url)
 				print "retrying..."
 				print "getting info on " + symbol + "..."
@@ -52,7 +63,7 @@ def parseSymbols(symbols):
 		while(table2==None):
 			table2 = soup.find(lambda tag: tag.name=='table' and tag.has_key('id') and tag['id']=="table2")
 			if (table2==None):
-				url = urllib2.urlopen("http://finance.yahoo.com/q?s="+symbol)
+				url = tryURL("http://finance.yahoo.com/q?s="+symbol)
 				soup = BeautifulSoup(url)
 				print "retrying..."
 				print "getting info on " + symbol + "..."
@@ -146,13 +157,13 @@ def readTable(page):
 	return symbol, last_trade, change, percentChange, vol
 
 def printGainers():
-	url =  urllib2.urlopen("http://finance.yahoo.com/gainers?e=us").read()
+	url =  tryURL("http://finance.yahoo.com/gainers?e=us").read()
 	print "GAINERS"
 	gSymbol, gLast, gChange, gpChange, gVol = readTable(url)
 	return gSymbol, gLast, gChange, gpChange, gVol 
 
 def printLosers():
-	url =  urllib2.urlopen("http://finance.yahoo.com/losers?e=us").read()
+	url =  tryURL("http://finance.yahoo.com/losers?e=us").read()
 	print "LOSERS"
 	lSymbol, lLast, lChange, lpChange, lVol = readTable(url)
 	return lSymbol, lLast, lChange, lpChange, lVol
