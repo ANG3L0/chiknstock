@@ -1,10 +1,12 @@
 from htmlparse import *
 from datetime import datetime
+from datetime import date
 import time
 import re
 import codecs
-import sys;
-
+import urllib
+import sys
+import os
 
 '''
 This module makes a bunch of files with data pertaining to stocks of interest.
@@ -19,16 +21,70 @@ stockname2: ""
 ...
 stockanme n: ""
 '''
-def watchlist(outname,symbols,period):
-	#parse watchlist
-	f = fopen(outname)
-	#get new symbols to append to watchlist
-	#update watchlist, but only ones that haven't expired
-	#make directories for pics
-	#get pics to directory
+def cast2str(syms):
+	for i in range(len(syms)):
+		syms[i] = str(syms[i])
+	return syms
 
+def getYahooStockPics(sym,t,direct):
+	urllib.urlretrieve("http://chart.finance.yahoo.com/t?s=" + sym + "&lang=en-US&region=US&width=600&height=360",direct+"/"+sym+"_"+t+".jpg")
+
+def watchlist(outname,symbols,period):
+	#### parse watchlist ####
+	try:
+		f = open(outname,'ra+') #actually read only but a creates new file if it doesn't exist
+	except IOError, e:
+		f = open(outname,'w+')
+	stockinfo = {}
+	updatestock = {}
+	today = date.today()
+	while (True):
+		line = f.readline()
+		if (line==''):
+			break
+		#grab info
+		stockname = re.findall('\w+',line)
+		stockname = stockname[0]
+		price = re.findall('([0-9]+\.[0-9]+) @',line)
+		startDate = re.findall('@ ([0-9]+-[0-9]+-[0-9]+)',line)
+		startDate = startDate[0]
+		startDate = datetime.strptime(startDate,'%Y-%m-%d').date()
+
+		#update stockinfo/updatestock dictionaries.
+		stockinfo[stockname] = line
+		if ((today - startDate).days > period):
+			updatestock[stockname]=False
+		else:
+			updatestock[stockname]=True
 	f.close()
-	print "watchlist"
+
+	f = open(outname,'w')
+	symlist = []
+	#### get aggregrate symbols (both old stock symbols and all the new ones) ####
+	symbols = cast2str(symbols)
+	if (stockinfo.keys()!=[]):
+		symlist = set(symbols + stockinfo.keys())
+	else:
+		symlist = set(symbols)
+	allsyms = parseSymbols(symlist)
+
+	#### update watchlist, but only ones that haven't expired yet ####
+	for sym in allsyms:
+		if sym not in stockinfo:
+			f.write(sym+":\t" + allsyms[sym]["Curr Price:"] + " @ " + today.isoformat() + "\n")
+		else:
+			if (updatestock[sym]):
+				f.write(stockinfo[sym][0:-1] + "\t" + allsyms[sym]["Curr Price:"] + " @ " + today.isoformat() +"\n")
+			else:
+				f.write(stockinfo[sym])
+	f.close()
+	##### make directories for pics and fill them w/ pics ####
+	for stock in updatestock:
+		if updatestock[stock]:
+			direct = "watchlist/" + stock
+			if not os.path.exists(direct):
+				os.makedirs(direct)
+				getYahooStockPics(stock,today.isoformat(),direct)
 
 #dump data for specific stocks into a lcal directory at a given frequency
 '''
@@ -71,5 +127,9 @@ def datadump(outdir, symbols, frequency):
 if __name__ == '__main__':
 	gSymbol, gLast, gChange, gpChange, gVol = printGainers()
 	# datadump("data",gSymbol,1000)
-	watchlist("watchlist/watchlist_gainers.txt",gSymbol,10)
-	print datetime.time(datetime.now())
+	#do watchlist updates on non-stock hours
+	t = datetime.now()
+	hr = t.hour
+	wkday = t.isoweekday()
+	if (hr<5 or hr>=13 or wkday>5 or wkday<1):
+		watchlist("watchlist/watchlist_gainers.txt",gSymbol,10)

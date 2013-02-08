@@ -66,6 +66,7 @@ def parseSymbols(symbols):
 				url = tryURL("http://finance.yahoo.com/q?s="+symbol)
 				soup = BeautifulSoup(url)
 				print "retrying..."
+				print "T2"
 				print "getting info on " + symbol + "..."
 				time.sleep(1)
 
