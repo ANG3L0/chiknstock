@@ -84,6 +84,7 @@ def watchlist(outname,symbols,period):
 			direct = "watchlist/" + stock
 			if not os.path.exists(direct):
 				os.makedirs(direct)
+			else:
 				getYahooStockPics(stock,today.isoformat(),direct)
 
 #dump data for specific stocks into a lcal directory at a given frequency
@@ -126,10 +127,10 @@ def datadump(outdir, symbols, frequency):
 
 if __name__ == '__main__':
 	gSymbol, gLast, gChange, gpChange, gVol = printGainers()
-	# datadump("data",gSymbol,1000)
+	datadump("data",gSymbol,1000)
 	#do watchlist updates on non-stock hours
 	t = datetime.now()
 	hr = t.hour
 	wkday = t.isoweekday()
-	if (hr<5 or hr>=13 or wkday>5 or wkday<1):
+	if (hr<6 or hr>=13 or wkday>5 or wkday<1):
 		watchlist("watchlist/watchlist_gainers.txt",gSymbol,10)
